@@ -18,6 +18,7 @@ The methodology and benchmarking results are described in our preprint:
 **Scalable Microbiome Network Inference: Mitigating Sparsity and Computational Bottlenecks in Random Effects Models**
 
 Debarshi Roy, Tarini Shankar Ghosh
+
 Microbiome Informatics Lab, IIIT Delhi
 
 bioRxiv (2026)
