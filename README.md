@@ -33,8 +33,8 @@ DOI: https://doi.org/10.64898/2026.03.27.714858
 
 Parallel-REM bypasses expensive robust regression calculations for zero-inflated microbial abundance matrices by applying strict biological filters:
 
-* Variance threshold filtering
-* Dynamic co-occurrence sparsity filtering
+- Variance threshold filtering
+- Dynamic co-occurrence sparsity filtering
 
 This prevents convergence failures and eliminates unnecessary computations.
 
@@ -46,9 +46,9 @@ The pipeline uses a **batched master-worker architecture** implemented with `job
 
 This design:
 
-* Enables efficient multi-core utilization
-* Reduces inter-process communication overhead
-* Achieves near-linear speedup on multi-core systems
+- Enables efficient multi-core utilization
+- Reduces inter-process communication overhead
+- Achieves near-linear speedup on multi-core systems
 
 Benchmarks demonstrate up to **26× speedup on 64-core architectures**.
 
@@ -58,9 +58,9 @@ Benchmarks demonstrate up to **26× speedup on 64-core architectures**.
 
 To avoid memory overflow on large datasets, Parallel-REM uses:
 
-* Shared memory mapping
-* Task batching
-* Controlled inter-process communication
+- Shared memory mapping
+- Task batching
+- Controlled inter-process communication
 
 This ensures stable memory usage even when processing **tens of thousands of samples**.
 
@@ -79,13 +79,13 @@ pip install numpy pandas scipy statsmodels joblib tqdm
 
 ### Requirements
 
-* Python 3.8+
-* NumPy
-* Pandas
-* SciPy
-* Statsmodels
-* Joblib
-* tqdm
+- Python 3.8+
+- NumPy
+- Pandas
+- SciPy
+- Statsmodels
+- Joblib
+- tqdm
 
 ---
 
@@ -101,6 +101,17 @@ Run the pipeline using the provided example dataset:
 python Parallel-REM.py \
   --abundance example_data/dummy_abundance.csv \
   --meta example_data/dummy_metadata.csv
+```
+
+### Makefile Support
+
+A `Makefile` is included to automate toy data generation, pipeline execution, and cleaning results.
+
+```bash
+make          # generate toy data if needed and run the pipeline
+make data     # generate example toy data files
+make run      # execute Parallel-REM on the example toy dataset
+make clean    # remove generated CSV outputs from REM_Results/
 ```
 
 ---
@@ -128,15 +139,15 @@ python Parallel-REM.py \
 
 The pipeline produces several matrices representing inferred microbial interactions:
 
-* Network interaction matrix
-* Effect size matrix
-* Significance matrix (p-values / FDR corrected)
+- Network interaction matrix
+- Effect size matrix
+- Significance matrix (p-values / FDR corrected)
 
 These outputs can be used for:
 
-* Microbial ecological network analysis
-* Downstream machine learning pipelines
-* Graph-based microbiome studies
+- Microbial ecological network analysis
+- Downstream machine learning pipelines
+- Graph-based microbiome studies
 
 ---
 
@@ -144,14 +155,14 @@ These outputs can be used for:
 
 Parallel-REM was evaluated on a **large clinical microbiome dataset**:
 
-* **70,185 samples**
-* **466 microbial species**
-* **217,156 pairwise interactions**
+- **70,185 samples**
+- **466 microbial species**
+- **217,156 pairwise interactions**
 
 The optimized pipeline achieved:
 
-* **26.1× speedup** compared to sequential execution
-* Near-linear scaling up to **48 CPU cores**
+- **26.1× speedup** compared to sequential execution
+- Near-linear scaling up to **48 CPU cores**
 
 ---
 
@@ -177,7 +188,7 @@ Parallel-REM/
 If you use **Parallel-REM** in your research, please cite:
 
 Roy, Debarshi and Ghosh, Tarini Shankar (2026).
-*Scalable Microbiome Network Inference: Mitigating Sparsity and Computational Bottlenecks in Random Effects Models.*
+_Scalable Microbiome Network Inference: Mitigating Sparsity and Computational Bottlenecks in Random Effects Models._
 bioRxiv.
 
 DOI: https://doi.org/10.64898/2026.03.27.714858
@@ -211,4 +222,3 @@ This work was developed at the **Microbiome Informatics Lab, IIIT Delhi**.
 ## Star the Repository
 
 If you find this project useful, please consider giving it a ⭐ on GitHub.
-
