@@ -28,5 +28,5 @@ run: data
 	$(PYTHON) $(PIPELINE) --abundance $(ABUNDANCE) --meta $(META) --outdir $(OUTDIR)
 
 clean:
-	@echo "Removing result files from $(OUTDIR)"
-	@rm -rf $(OUTDIR)/*.csv
+	@echo "Removing result folder $(OUTDIR)"
+	@rm -rf $(OUTDIR)
