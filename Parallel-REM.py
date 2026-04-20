@@ -7,6 +7,12 @@ import os
 import argparse
 import warnings
 import multiprocessing
+
+# Set thread limits before importing numerical libraries.
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
@@ -20,10 +26,6 @@ from statsmodels.robust.norms import HuberT
 from statsmodels.tools import add_constant
 from statsmodels.stats.multitest import fdrcorrection
 
-# Thread control to prevent conflicts with Parallel execution
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
-os.environ["MKL_NUM_THREADS"] = "1"
 warnings.filterwarnings("ignore")
 
 # ============================================================
@@ -157,10 +159,10 @@ def run_single_pair(s1, s2, df, study_col, study_list):
 # ============================================================
 # 3. Main Runner
 # ============================================================
-def REM_network(df, species_list, study_col, study_list, n_jobs=4, batch_size=50):
+def REM_network(df, species_list, study_col, study_list, n_jobs=4, batch_size=50, backend="loky"):
     total_pairs = len(species_list)**2
     print(f"[✔] Total pairs to compute: {total_pairs:,}")
-    print(f"[✔] Using {n_jobs} CPU cores with batch size {batch_size}")
+    print(f"[✔] Using {n_jobs} CPU cores with batch size {batch_size} ({backend} backend)")
 
     pairs = [(s1, s2) for s1 in species_list for s2 in species_list]
 
@@ -168,12 +170,24 @@ def REM_network(df, species_list, study_col, study_list, n_jobs=4, batch_size=50
         for a, b in tqdm(pairs, total=total_pairs, desc="Computing", ncols=100):
             yield a, b
 
-    # FIX 2: Use context manager "with Parallel" to guarantee clean teardown of workers
-    with Parallel(n_jobs=n_jobs, backend="loky", batch_size=batch_size) as parallel:
-        results = parallel(
-            delayed(run_single_pair)(s1, s2, df, study_col, study_list)
-            for (s1, s2) in tqdm_wrapper(pairs)
+    def execute_parallel(selected_backend):
+        with Parallel(n_jobs=n_jobs, backend=selected_backend, batch_size=batch_size) as parallel:
+            return parallel(
+                delayed(run_single_pair)(s1, s2, df, study_col, study_list)
+                for (s1, s2) in tqdm_wrapper(pairs)
+            )
+
+    try:
+        results = execute_parallel(backend)
+    except PermissionError as exc:
+        if backend != "loky":
+            raise
+        fallback_backend = "multiprocessing"
+        print(
+            f"[!] '{backend}' backend is unavailable on this system ({exc}). "
+            f"Retrying with '{fallback_backend}'."
         )
+        results = execute_parallel(fallback_backend)
 
     est = pd.DataFrame(0.0, index=species_list, columns=species_list)
     pval = pd.DataFrame(1.0, index=species_list, columns=species_list)
@@ -217,6 +231,12 @@ if __name__ == "__main__":
     parser.add_argument("--meta", required=True, help="Path to metadata CSV (samples as rows, must contain 'study_name' column)")
     parser.add_argument("--cores", type=int, default=-1, help="Number of CPU cores to use (-1 for all available)")
     parser.add_argument("--outdir", default="REM_Results", help="Directory to save output matrices")
+    parser.add_argument(
+        "--backend",
+        default="loky",
+        choices=["loky", "multiprocessing", "threading"],
+        help="joblib backend to use for parallel execution",
+    )
     args = parser.parse_args()
 
     os.makedirs(args.outdir, exist_ok=True)
@@ -245,7 +265,14 @@ if __name__ == "__main__":
     print(f"[✔] Species count: {len(species_list)}")
     print(f"[✔] Study count:   {len(study_list)}")
 
-    final_results = REM_network(df_rem, species_list, "study_name", study_list, n_jobs=n_jobs)
+    final_results = REM_network(
+        df_rem,
+        species_list,
+        "study_name",
+        study_list,
+        n_jobs=n_jobs,
+        backend=args.backend,
+    )
 
     # Save outputs
     final_results['est'].to_csv(os.path.join(args.outdir, "rem_est_matrix.csv"))
