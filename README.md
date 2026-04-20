@@ -108,10 +108,16 @@ python Parallel-REM.py \
 A `Makefile` is included to automate toy data generation, pipeline execution, and cleaning results.
 
 ```bash
-make          # generate toy data if needed and run the pipeline
-make data     # generate example toy data files
-make run      # execute Parallel-REM on the example toy dataset
-make clean    # remove generated CSV outputs from REM_Results/
+make help                          # list all available targets
+make                               # run `all` (pipeline + scaling plots)
+make data                          # generate example toy data files
+make run                           # execute Parallel-REM on the example toy dataset
+make plots                         # benchmark and generate scaling plots
+make clean                         # remove generated result and benchmark folders
+
+# Optional Makefile variable overrides
+make run OUTDIR=results BACKEND=loky
+make plots BENCHMARK_TIMEOUT=120 BACKEND=multiprocessing
 ```
 
 ---
